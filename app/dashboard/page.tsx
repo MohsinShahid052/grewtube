@@ -11,11 +11,12 @@ import Link from "next/link";
 import { Trash2 } from "lucide-react";
 import { any, div } from "@tensorflow/tfjs";
 import ChartComponent from "../components/WinningVoteChart";
-import Spinner from "@/public/Spinner@1x-1.0s-200px-200px.svg"; 
+import Spinner from "@/public/Spinner@1x-1.0s-200px-200px.svg";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import Logo from "@/public/download (2).png";
+
 
 interface SidebarProps {
     activeTab: string;
@@ -116,7 +117,7 @@ interface HistoryItem {
     url: string;
     data: any; // Replace `any` with a more specific type if possible
 }
-const Dashboard =() => {
+const Dashboard = () => {
     const [winningVote, setWinningVote] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState("Dashboard");
     const [darkMode, setDarkMode] = useState(false);
@@ -132,7 +133,6 @@ const Dashboard =() => {
     const [c3Count, setC3Count] = useState(0);
     const [a1Count, setA1Count] = useState(0);
     const [url, setUrl] = useState('');
-
 
     // ------------------Activity tab------------------------------------------
 
@@ -173,9 +173,9 @@ const Dashboard =() => {
 
         fetchSavedUrls();
     }, [session]);
-    
+
     const handleUrlClick = async (url: string) => {
-        setUrl(url);    
+        setUrl(url);
         setIsLoading(true);
         setError("");
 
@@ -213,56 +213,53 @@ const Dashboard =() => {
             setIsLoading(false);
         }
     };
-
-
-
     const handleAddUrl = async () => {
         setUrl(url);
         if (!session || !session.user) {
-                    setError("User not authenticated. Please log in.");
-                    setTimeout(() => {
-                        router.push("/login");
-                    }, 2000);
-                    setIsLoading(false);
-                    return;
-                }
-    
-        const userId = (session.user as any).id;
-    
-        // YouTube URL Validation
-        const isValidYoutubeUrl = (url: string) => {
-            const youtubeRegex =
-                /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/;
-            return youtubeRegex.test(url);
-        };
-    
-        if (!isValidYoutubeUrl(inputUrl)) {
-            setError("Invalid YouTube URL. Please provide a valid YouTube video URL.");
-            return; // Do not proceed if URL is invalid
+            setError("User not authenticated. Please log in.");
+            setTimeout(() => {
+                router.push("/login");
+            }, 2000);
+            setIsLoading(false);
+            return;
         }
-    
+
+        const userId = (session.user as any).id;
+
+        // YouTube URL Validation
+        // const isValidYoutubeUrl = (url: string) => {
+        //     const youtubeRegex =
+        //         /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/;
+        //     return youtubeRegex.test(url);
+        // };
+
+        // if (!isValidYoutubeUrl(inputUrl)) {
+        //     setError("Invalid YouTube URL. Please provide a valid YouTube video URL.");
+        //     return; // Do not proceed if URL is invalid
+        // }
+
         setIsLoading(true);
         setError("");
-    
+
         try {
-   
+
             const checkUrlResponse = await fetch(`/api/users/saveUrl`, {
                 method: "GET",
             });
-    
+
             if (!checkUrlResponse.ok) {
                 const errorData = await checkUrlResponse.json();
                 setError(errorData.error || "Error fetching saved URLs");
                 return;
             }
-    
+
             const savedUrls = await checkUrlResponse.json();
-    
+
             const existingUrlObj = savedUrls.urls.find(
                 (urlObj: { url: string }) => urlObj.url === inputUrl
             );
-    
-      
+
+
             const analyzeResponse = await fetch("/api/analyze", {
                 method: "POST",
                 headers: {
@@ -270,7 +267,7 @@ const Dashboard =() => {
                 },
                 body: JSON.stringify({ videoUrl: inputUrl }),
             });
-    
+
             if (analyzeResponse.ok) {
                 const data = await analyzeResponse.json();
                 console.log("------------------>>>>", data);
@@ -283,11 +280,11 @@ const Dashboard =() => {
                 setVideoData(data);
                 setpositivecomments(data.positiveCommentCount);
                 setnegative(data.negativeCommentCount);
-    
-            
+
+
                 const winningVote = calculateWinningVote(data.voteCounts.A1, data.voteCounts.B2, data.voteCounts.C3);
-    
-           
+
+
                 if (existingUrlObj) {
                     const updateResponse = await fetch("/api/users/winningVote", {
                         method: "POST",
@@ -300,7 +297,7 @@ const Dashboard =() => {
                             winningVote,
                         }),
                     });
-    
+
                     if (!updateResponse.ok) {
                         const updateErrorData = await updateResponse.json();
                         setError(updateErrorData.error || "Failed to update the winning vote");
@@ -315,14 +312,14 @@ const Dashboard =() => {
                         },
                         body: JSON.stringify({ videoUrl: inputUrl, userId }), // Pass userId and videoUrl
                     });
-    
+
                     if (!saveResponse.ok) {
                         const saveErrorData = await saveResponse.json();
                         setError(saveErrorData.error || "Failed to save the URL to the database");
                         return;
                     }
                 }
-    
+
                 // Clear the input and set the active tab
                 setInputUrl("");
                 setActiveTab("Dashboard");
@@ -336,16 +333,16 @@ const Dashboard =() => {
             setIsLoading(false);
         }
     };
-    
-   
-    
+
+
+
     const calculateWinningVote = (a1Count, b2Count, c3Count) => {
         if (a1Count > b2Count && a1Count > c3Count) return "A1";
         if (b2Count > a1Count && b2Count > c3Count) return "B2";
         if (c3Count > a1Count && c3Count > b2Count) return "C*3";
         return null; // No winning vote
     };
-    
+
 
     const handleDeleteUrl = async (urlId: any) => {
         try {
@@ -524,16 +521,13 @@ const Dashboard =() => {
                             {session ? (
                                 <button
                                     className="border-2 border-black text-black shadow-md px-4 py-2 rounded-md mr-4 text-sm lg:text-base"
-                                    onClick={() => signOut({ callbackUrl: "/login" })} // Sign out and redirect to login page
+                                    onClick={handleLogout}
                                 >
                                     <span className="text-black">
-
                                         Logout
                                     </span>
-
                                 </button>
                             ) : (
-                                // If no session, show the "Login" button
                                 <>
                                     <Link href="/login">
                                         <button className="bg-[#D6D6D6] hover:bg-[#bdbdbd] shadow-md px-4 py-2 rounded-md mr-4 text-sm lg:text-base">
@@ -556,7 +550,7 @@ const Dashboard =() => {
                     {activeTab === "Dashboard" && (
                         <div className="text-black">
                             <div className="flex-1 overflow-x-hidden">
-                            
+
                                 <div className="border-gray-300 rounded-2xl p-4 mb-4">
                                     <div className="flex space-x-4 mb-4">
                                         <input
@@ -591,17 +585,17 @@ const Dashboard =() => {
 
                                 <div className="p-4">
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        
+
                                         <div className="bg-gradient-to-b from-white via-[#fff3f0] to-white shadow-md p-4 lg:p-6 rounded-2xl flex items-center justify-center flex-col">
                                             <span className="font-bold mb-10 text-lg">Title</span>
                                             <h3 className="font-bold text-black mb-4 text-3xl">{title}</h3>
                                         </div>
 
-                               
+
                                         <div className="bg-white shadow-md p-4 lg:p-8 rounded-2xl text-black flex flex-col items-center justify-center">
                                             <span className="font-bold mb-10 text-lg">Total Comments</span>
                                             <h3 className="font-bold mb-4 text-3xl text-black break-words text-wrap">
-                                                {positivecomments + negativecomments} 
+                                                {positivecomments + negativecomments}
                                             </h3>
                                         </div>
 
@@ -613,7 +607,7 @@ const Dashboard =() => {
                                                 </div>
                                                 <div className="py-8 px-2 border-2 border-black rounded-md flex flex-col items-center justify-center w-[8.5rem]">
                                                     <span className="text-sm lg:text-lg font-bold mb-2 text-black">B2</span>
-                                                    <span className="text-3xl font-bold text-black">{b2Count || 0}</span> 
+                                                    <span className="text-3xl font-bold text-black">{b2Count || 0}</span>
                                                 </div>
                                                 <div className="py-8 px-2 rounded-md flex flex-col items-center justify-center bg-[#F8EF6D] w-[8.5rem]">
                                                     <span className="text-sm lg:text-lg font-bold mb-2 text-black">C*3</span>
@@ -625,14 +619,14 @@ const Dashboard =() => {
                                         {/* Winning Votes */}
                                         <div className="bg-white shadow-md p-4 lg:p-6 rounded-2xl text-black flex flex-col items-center justify-center">
                                             <span className="text-center text-black text-lg mb-4 font-bold">Winning Vote</span>
-                                            <h3 className="font-bold text-5xl text-black">{calculateWinningVote(a1Count, b2Count, c3Count)}</h3> 
+                                            <h3 className="font-bold text-5xl text-black">{calculateWinningVote(a1Count, b2Count, c3Count)}</h3>
                                         </div>
 
                                         {/* Graph Section */}
                                         <div className="bg-white shadow-md p-4 lg:p-6 rounded-2xl w-full">
                                             <h2 className="text-center text-black text-lg font-bold">Graph</h2>
                                             <ChartComponent
-                                                
+
                                             />
                                         </div>
                                     </div>
@@ -756,7 +750,7 @@ const Dashboard =() => {
           )} */}
 
 
-          {/* {activeTab === "Activity" && (
+                    {/* {activeTab === "Activity" && (
             <div className="text-black">
               {isLoading ? (
                 <div className="flex justify-center items-center h-full w-full ">
