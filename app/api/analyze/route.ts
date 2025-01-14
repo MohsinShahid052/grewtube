@@ -56,6 +56,8 @@ export async function POST(req: NextRequest) {
     console.log('Video Description:', videoDetails.description);
     console.log('Views:', videoDetails.views);
     console.log('Likes:', videoDetails.likes);
+    console.log('Comments:', videoDetails.commentCount);
+
 
     const descriptionSentiment = await analyzeSentiment(loadedModel, videoDetails.description);
 
@@ -66,6 +68,7 @@ export async function POST(req: NextRequest) {
       views: videoDetails.views,
       likes: videoDetails.likes,
       sentiment: descriptionSentiment,
+      commentCount:videoDetails.commentCount,
       positiveCommentCount,
       negativeCommentCount,
       voteCounts, // This will contain counts for A1, B2, C*3
@@ -113,6 +116,7 @@ async function fetchVideoDetails(videoId: string) {
       description: video.snippet.description,
       views: video.statistics.viewCount,
       likes: video.statistics.likeCount,
+      commentCount: video.statistics.commentCount,
     };
   } catch (error) {
     console.error('Error fetching video details:', error);
