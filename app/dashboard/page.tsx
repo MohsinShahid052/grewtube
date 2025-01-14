@@ -123,7 +123,7 @@ const Dashboard = () => {
     const [darkMode, setDarkMode] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [title, settitle] = useState("");
-    const [view, setview] = useState("");
+    const [commentCount, setcommentCount]= useState("");
     const [like, setlike] = useState("");
     const [sentiment, setsentiment] = useState("");
     const [positivecomments, setpositivecomments] = useState("");
@@ -192,9 +192,7 @@ const Dashboard = () => {
             if (analyzeResponse.ok) {
                 const data = await analyzeResponse.json();
                 settitle(data.title);
-                // setview(data.views);
-                // setsentiment(data.sentiment);
-                setview(data.totalComments);
+                setcommentCount(data.commentCount);
                 setA1Count(data.voteCounts.A1); // Use set function
                 setB2Count(data.voteCounts.B2); // Use set function
                 setC3Count(data.voteCounts.C3); // Use set function
@@ -225,18 +223,6 @@ const Dashboard = () => {
         }
 
         const userId = (session.user as any).id;
-
-        // YouTube URL Validation
-        // const isValidYoutubeUrl = (url: string) => {
-        //     const youtubeRegex =
-        //         /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/;
-        //     return youtubeRegex.test(url);
-        // };
-
-        // if (!isValidYoutubeUrl(inputUrl)) {
-        //     setError("Invalid YouTube URL. Please provide a valid YouTube video URL.");
-        //     return; // Do not proceed if URL is invalid
-        // }
 
         setIsLoading(true);
         setError("");
@@ -273,7 +259,7 @@ const Dashboard = () => {
                 console.log("------------------>>>>", data);
                 settitle(data.title);
                 setlike(data.likes);
-                setview(data.totalComments);
+                setcommentCount(data.commentCount);
                 setA1Count(data.voteCounts.A1);
                 setB2Count(data.voteCounts.B2);
                 setC3Count(data.voteCounts.C3);
@@ -595,7 +581,7 @@ const Dashboard = () => {
                                         <div className="bg-white shadow-md p-4 lg:p-8 rounded-2xl text-black flex flex-col items-center justify-center">
                                             <span className="font-bold mb-10 text-lg">Total Comments</span>
                                             <h3 className="font-bold mb-4 text-3xl text-black break-words text-wrap">
-                                                {positivecomments + negativecomments}
+                                                {commentCount}
                                             </h3>
                                         </div>
 
